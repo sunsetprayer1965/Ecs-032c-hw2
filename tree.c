@@ -1,67 +1,42 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "tree.h"
 
-#define HERE fprintf(stderr, "YOU NEED TO IMPLEMENT THIS!\n");
-
+// String comparison function for char pointers
 int comparison_fn(const void *a, const void *b) {
-    int int_a = *((int *)a);
-    int int_b = *((int *)b);
-        if (int_a > int_b) {
-            return 1;
-        }
-        else if (int_a < int_b) {
-            return -1;
-        }
-            
-        else {
-            return 0;
-        }   
-    }
+    return strcmp((const char *)a, (const char *)b);
+}
 
-// A useful helper function for contains/find/insert.
-// This returns the pointer to the node that matches the
-// key or NULL if nothing matches.
-tree_node *find_node(tree_node *t, const void *key, int (*comparison_fn)(const void *, const void *))
-{
-    // Suppress compiler warnings
-    (void)t;
-    (void)key;
-    (void)comparison_fn;
+// Helper function for finding nodes
+tree_node *find_node(tree_node *t, const void *key, int (*comparison_fn)(const void *, const void *)) {
     while (t) {
         int n = comparison_fn(key, t->key);
         if (n == 0) {
             return t;
-            }
-        else if (n== -1) {
-            t = t->left;}
-
-        else {
-            t = t->right;}
+        } else if (n < 0) {
+            t = t->left;
+        } else {
+            t = t->right;
+        }
     }
     return NULL;
 }
 
-
-// Allocates a new tree with the specified comparison function.
-tree *new_tree(int (*comparison_fn)(const void *, const void *))
-{
+// Allocates a new tree with the specified comparison function
+tree *new_tree(int (*comparison_fn)(const void *, const void *)) {
     tree *t = (tree *)malloc(sizeof(tree));
     if (t == NULL) {
         return NULL;
     }
-    // initialze property
-    t-> root = NULL;
-    t-> comparison_fn = comparison_fn;
+    t->root = NULL;
+    t->comparison_fn = comparison_fn;
     return t;
 }
 
-// Frees the the nodes, but does not free the keys
-// or data (deliberately so).
-void free_node(tree_node *t)
-{   
-    (void)t; 
+// Frees the nodes of the tree
+void free_node(tree_node *t) {   
     if (t == NULL) {
         return;
     }
@@ -70,52 +45,30 @@ void free_node(tree_node *t)
     free(t);
 }
 
-// And frees the entire tree and the nodes
-// but again, not the data or keys.
-void free_tree(tree *t)
-{
-    (void)t;
-    if (t== NULL) {
+// Frees the entire tree
+void free_tree(tree *t) {
+    if (t == NULL) {
         return;
     }
     free_node(t->root);
     free(t);
 }
 
-// Returns true if the key (comparison == 0) is in the tree
-bool contains(tree *t, const void *key)
-{
-    (void)t;
-    (void)key;
-    if (t == NULL) {
-        return false;
+// Returns the data or NULL if the key is not in the tree
+void *find(tree *t, const void *key) {
+    if (t == NULL || t->root == NULL) {
+        return NULL;
     }
-    tree_node *n = find_node(t->root,key, t->comparison_fn);
-    if (n != NULL) {
-        return true;
+
+    tree_node *node = find_node(t->root, key, t->comparison_fn);
+    if (node != NULL) {
+        return node->data;
     }
-    else {
-    return false;}
 
-
-}
-
-// Returns the data or NULL if the data is not in the tree.
-void *find(tree *t, const void *key)
-{
-    (void)t;
-    (void)key;
-    if ((contains(t, key)) == false) {
-        return false;
-
-    }
-    else {
-        return find_node(t->root,key, t->comparison_fn)->data;
-    }
     return NULL;
 }
 
-// Inserts the  into the tree
+// Creates a new tree node
 tree_node *new_node(void *key, void *data) {
     tree_node *new = (tree_node *)malloc(sizeof(tree_node));
     if (new == NULL) {
@@ -128,9 +81,8 @@ tree_node *new_node(void *key, void *data) {
     return new;
 }
 
-
-void insert(tree *t, void *key, void *data)
-{    
+// Inserts a key-data pair into the tree
+void insert(tree *t, void *key, void *data) {
     if (t->root == NULL) {
         t->root = new_node(key, data);
         return;
@@ -139,23 +91,20 @@ void insert(tree *t, void *key, void *data)
     tree_node *current = t->root;
     tree_node *parent = NULL;
 
-    // Traverse to find the correct position
     while (current != NULL) {
         parent = current;
-        int num = t->comparison_fn(key, current->key);
+        int cmp = t->comparison_fn(key, current->key);
 
-        if (num == 0) {
-            // Update data if duplicate
+        if (cmp == 0) {
             current->data = data;
             return;
-        } else if (num < 0) {
+        } else if (cmp < 0) {
             current = current->left;
         } else {
             current = current->right;
         }
     }
 
-    // Insert the new node as the child of the parent
     if (t->comparison_fn(key, parent->key) < 0) {
         parent->left = new_node(key, data);
     } else {
@@ -163,24 +112,18 @@ void insert(tree *t, void *key, void *data)
     }
 }
 
-// This visits every node in an in-order traversal,
-// calling f on key, data, context.  Context is
-// so that f has an ability to maintain its own state
-// between calls.  This is a useful helper function for implemneting
-// traverse
-void traverse_node(tree_node *t, void (*f)(void *, void *, void *), void *context)
-{
+// In-order traversal of the tree
+void traverse_node(tree_node *t, void (*f)(void *, void *, void *), void *context) {
     if (t == NULL) {
         return;
     }
 
-    traverse_node(t->left, f, context);  // Visit the left subtree
-    f(t->key, t->data, context);         // Process the current node
-    traverse_node(t->right, f, context); // Visit the right subtree
+    traverse_node(t->left, f, context);
+    f(t->key, t->data, context);
+    traverse_node(t->right, f, context);
 }
 
-void traverse(tree *t, void (*f)(void *, void *, void *), void *context)
-{
+void traverse(tree *t, void (*f)(void *, void *, void *), void *context) {
     if (t == NULL || t->root == NULL) {
         return;
     }
