@@ -62,7 +62,7 @@ tree *new_tree(int (*comparison_fn)(const void *, const void *))
 void free_node(tree_node *t)
 {   
     (void)t; 
-    if (t) {
+    if (t == NULL) {
         return;
     }
     free_node(t->left);
@@ -75,7 +75,7 @@ void free_node(tree_node *t)
 void free_tree(tree *t)
 {
     (void)t;
-    if (t) {
+    if (t== NULL) {
         return;
     }
     free_node(t->root);
@@ -139,15 +139,20 @@ void insert(tree *t, void *key, void *data)
     }
        tree_node *current = t->root;
        tree_node *parent = NULL;
-    while (current !=NULL) {
+   while (current != NULL) {
         parent = current;
-        int num = t->comparison_fn(key,current->key);
-        if (num == -1){
+        int num = t->comparison_fn(key, current->key);
+
+        if (num == 0) {
+            // Handle duplicate: update the data
+            current->data = data;
+            return;
+        } else if (num < 0) {
             current = current->left;
+        } else {
+            current = current->right;
         }
-        else {
-            current = current ->right;
-        }
+    
 
 
     }
