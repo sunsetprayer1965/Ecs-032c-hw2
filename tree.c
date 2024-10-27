@@ -5,13 +5,13 @@
 
 #define HERE fprintf(stderr, "YOU NEED TO IMPLEMENT THIS!\n");
 
-int comparison_fn(const void *, const void *) {
-    int a = *((int *)a);
-    int b = *((int *)b);
-        if (a > b) {
+int comparison_fn(const void *a, const void *b) {
+    int int_a = *((int *)a);
+    int int_b = *((int *)b);
+        if (int_a > int_b) {
             return 1;
         }
-        else if (a < b) {
+        else if (int_a < int_b) {
             return -1;
         }
             
@@ -87,7 +87,7 @@ bool contains(tree *t, const void *key)
 {
     (void)t;
     (void)key;
-    if (t) {
+    if (t == NULL) {
         return false;
     }
     tree_node *n = find_node(t->root,key, t->comparison_fn);
