@@ -4,12 +4,31 @@
 
 #include "tree.h"
 
-// String comparison function for char pointers
+
 int comparison_fn(const void *a, const void *b) {
-    return strcmp((const char *)a, (const char *)b);
+    const char *str_a = (const char *)a;
+    const char *str_b = (const char *)b;
+
+    while (*str_a && *str_b) {
+        if (*str_a < *str_b) {
+            return -1;
+        } else if (*str_a > *str_b) {
+            return 1;
+        }
+        str_a++;
+        str_b++;
+    }
+
+    if (*str_a == '\0' && *str_b != '\0') {
+        return -1;
+    } else if (*str_a != '\0' && *str_b == '\0') {
+        return 1;
+    }
+
+    return 0;
 }
 
-// Helper function for finding nodes
+
 tree_node *find_node(tree_node *t, const void *key, int (*comparison_fn)(const void *, const void *)) {
     while (t) {
         int n = comparison_fn(key, t->key);
@@ -24,7 +43,7 @@ tree_node *find_node(tree_node *t, const void *key, int (*comparison_fn)(const v
     return NULL;
 }
 
-// Allocates a new tree with the specified comparison function
+
 tree *new_tree(int (*comparison_fn)(const void *, const void *)) {
     tree *t = (tree *)malloc(sizeof(tree));
     if (t == NULL) {
@@ -45,7 +64,6 @@ void free_node(tree_node *t) {
     free(t);
 }
 
-// Frees the entire tree
 void free_tree(tree *t) {
     if (t == NULL) {
         return;
@@ -54,7 +72,7 @@ void free_tree(tree *t) {
     free(t);
 }
 
-// Returns the data or NULL if the key is not in the tree
+
 void *find(tree *t, const void *key) {
     if (t == NULL || t->root == NULL) {
         return NULL;
@@ -68,7 +86,7 @@ void *find(tree *t, const void *key) {
     return NULL;
 }
 
-// Creates a new tree node
+
 tree_node *new_node(void *key, void *data) {
     tree_node *new = (tree_node *)malloc(sizeof(tree_node));
     if (new == NULL) {
@@ -81,7 +99,7 @@ tree_node *new_node(void *key, void *data) {
     return new;
 }
 
-// Inserts a key-data pair into the tree
+
 void insert(tree *t, void *key, void *data) {
     if (t->root == NULL) {
         t->root = new_node(key, data);
@@ -93,12 +111,12 @@ void insert(tree *t, void *key, void *data) {
 
     while (current != NULL) {
         parent = current;
-        int cmp = t->comparison_fn(key, current->key);
+        int num = t->comparison_fn(key, current->key);
 
-        if (cmp == 0) {
+        if (num == 0) {
             current->data = data;
             return;
-        } else if (cmp < 0) {
+        } else if (num < 0) {
             current = current->left;
         } else {
             current = current->right;
