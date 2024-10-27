@@ -131,20 +131,21 @@ tree_node *new_node(void *key, void *data) {
 
 void insert(tree *t, void *key, void *data)
 {    
-    (void)t;
-    (void)key;
-    (void)data;
-    if (t-> root== NULL) {
-        t->root = new_node(key,data);
+    if (t->root == NULL) {
+        t->root = new_node(key, data);
+        return;
     }
-       tree_node *current = t->root;
-       tree_node *parent = NULL;
-   while (current != NULL) {
+
+    tree_node *current = t->root;
+    tree_node *parent = NULL;
+
+    // Traverse to find the correct position
+    while (current != NULL) {
         parent = current;
         int num = t->comparison_fn(key, current->key);
 
         if (num == 0) {
-            // Handle duplicate: update the data
+            // Update data if duplicate
             current->data = data;
             return;
         } else if (num < 0) {
@@ -152,18 +153,14 @@ void insert(tree *t, void *key, void *data)
         } else {
             current = current->right;
         }
-    
-
-
     }
-    int numb = t->comparison_fn(key,parent->key);
-    if (numb == -1) {
-            parent->left = new_node(key,data);
-        }
-        else {
-            parent->right = new_node(key,data);
-        }
 
+    // Insert the new node as the child of the parent
+    if (t->comparison_fn(key, parent->key) < 0) {
+        parent->left = new_node(key, data);
+    } else {
+        parent->right = new_node(key, data);
+    }
 }
 
 // This visits every node in an in-order traversal,
@@ -173,23 +170,20 @@ void insert(tree *t, void *key, void *data)
 // traverse
 void traverse_node(tree_node *t, void (*f)(void *, void *, void *), void *context)
 {
-    (void)t;
-    (void)f;
-    (void)context;
     if (t == NULL) {
-        return;  // Base case: if the node is NULL, return
+        return;
     }
+
     traverse_node(t->left, f, context);  // Visit the left subtree
     f(t->key, t->data, context);         // Process the current node
     traverse_node(t->right, f, context); // Visit the right subtree
-    return;
 }
 
 void traverse(tree *t, void (*f)(void *, void *, void *), void *context)
 {
-    (void)t;
-    (void)f;
-    (void)context;
+    if (t == NULL || t->root == NULL) {
+        return;
+    }
+
     traverse_node(t->root, f, context);
-    return;
 }
